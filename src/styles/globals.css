@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.canvas {
+    overflow-clip-margin: content-box;
+    overflow: clip;
+}
+/* For Webkit-based browsers (Chrome, Safari and Opera) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+textarea::-webkit-resizer {
+  display: none;
+}
+
+
