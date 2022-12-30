@@ -5,7 +5,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { trpc } from "../utils/trpc";
 import { SideBar } from "../components/sidebar";
-import { MainPage } from "../components/main";
+import MainPageTw from "../components/main/MainPageTw";
 
 const Home: NextPage = () => {
   const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
@@ -18,12 +18,12 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       
-      <AuthShowcase/>
+      {/* <AuthShowcase/> */}
       <div className="z-0 box-border w-full h-full relative" >
-        <div className="flex flex-col relative z-0 min-h-screen bg-slate-200">
+        <div className="flex flex-col relative z-0 min-h-screen bg-bgcl">
             <div className="h-full flex shrink-0 items-stretch grow-0 ">
               <SideBar/>
-              <MainPage/>
+              <MainPageTw/>
             </div>
         </div>
       </div>

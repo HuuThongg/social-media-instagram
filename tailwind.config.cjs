@@ -9,6 +9,7 @@ module.exports = {
         primary_bg: "rgb(255,255,255)",
         elevated_border: "rgb(219,219,219)",
         secondary_text: "rgb(142, 142, 142)",
+        bordercl: "rgb(47,51,54)",
       },
     },
     screens: {

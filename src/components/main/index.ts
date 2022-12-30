@@ -1,4 +1,2 @@
-import MainPage from "./MainPage";
-export {
-  MainPage,
-}
+import MainPageTw from "./MainPageTw";
+export { MainPageTw };
