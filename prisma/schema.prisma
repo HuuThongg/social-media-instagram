@@ -55,6 +55,24 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  Tweet         Tweet[]
+}
+
+model ImgsTw  {
+  id            String    @id @default(cuid())
+  url           String
+  owner         Tweet @relation(fields: [ownerId], references: [id])
+  ownerId       String
+}
+
+model Tweet {
+  id        String   @id @default(cuid())
+  text      String
+  imgsTw    ImgsTw[]
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {
