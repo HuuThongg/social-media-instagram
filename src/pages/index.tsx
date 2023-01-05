@@ -24,10 +24,10 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       
-      <AuthShowcase/>
+      {/* <AuthShowcase/> */}
       <div className="z-0 box-border w-full h-full relative" >
         <div className="flex flex-col relative z-0 min-h-screen bg-bgcl">
-            <div className="h-full flex shrink-0 items-stretch grow-0 ">
+            <div className="h-full flex shrink-0 items-stretch grow-0 relative ">
               <SideBar/>
               <MainPageTw />
             </div>

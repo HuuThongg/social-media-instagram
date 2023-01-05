@@ -1,4 +1,3 @@
-import { Router } from 'next/router'
 import React from 'react'
 import { RouterOutputs, trpc } from '../../utils/trpc'
 import Image from 'next/image'
@@ -7,14 +6,44 @@ function Tweet({
   // client,
   // input
 }:{tweet:RouterOutputs['tweet']['timeline']['tweets'][number]}){
-  console.log(tweet.imgsTw[0]?.url);
+  let imgUrlsObject ={...tweet.imgsTw}
+  console.log(imgUrlsObject[0]?.url)
+  
 
-  return(
-    <div className=' flex flex-col'>
-      {tweet.author.image &&
-        <img src={tweet.author.image} alt={`${tweet.author.name} profile picture`}  className='rounded-full w-[40px] h-[40px]' />
-      }
-      
+  return( 
+    <div>
+      <div>
+        ....................................................
+      </div>
+      <div className=' flex flex-col'>
+        {tweet.author.image &&
+          <img src={tweet.author.image} alt={`${tweet.author.name} profile picture`}  className='rounded-full w-[40px] h-[40px]' />
+        }
+        {/* text */}
+        <div>
+        {
+          tweet.text &&
+          <div className='text-sm text-gray-600'>
+            {tweet.text}
+          </div>
+
+        }
+        </div>
+        <div>
+          {imgUrlsObject[0]  &&
+            tweet.imgsTw.map((url,index) =>(
+            
+              <img src={imgUrlsObject[index]?.url} alt={`${tweet.author.name} profile picture`} />
+            ))
+          }
+        </div>
+        <div>
+          {/* <img src="blob:http://localhost:3000/b3e587f2-be70-4fc5-91c9-9b417e5aeb10" alt="dd" /> */}
+        </div>
+      </div>
+      <div>
+        
+      </div>
     </div>
   )
 }

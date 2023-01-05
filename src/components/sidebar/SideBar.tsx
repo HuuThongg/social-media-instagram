@@ -13,9 +13,9 @@ const SideBar = () => {
   const [isHover, setIsHover] = useState(false)
 
   return (
-    <header className='flex flex-col select-none z-[3] shrink-0 border-none box-border items-end text-[20px] min-w-0 min-h-0 w-[483px] h-full bg-black relative '> 
+    <header className='flex flex-col  select-none z-[3] shrink-0 grow items-end border-none box-border  text-[20px] min-w-0 min-h-0  h-full bg-black relative '> 
       <div className='w-[275px] h-full z-0 flex flex-col shrink-0 pointer-events-auto relative '>
-        <div className='relative block w-full'>
+        <div className='relative  w-full'>
 
           <div className='  w-[275px] fixed h-full flex flex-col  px-3 top-0 '>
             <div className='flex flex-col justify-between h-full'>

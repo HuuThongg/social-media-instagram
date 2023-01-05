@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 
 import Post from '../twpost/Post'
 import Image from 'next/image'
 import ImagePicker from '../createPost/ImagePicker'
 import {object,string} from 'zod'
 import { trpc } from '../../utils/trpc'
-import { url } from 'inspector';
+import { GrImage } from 'react-icons/gr'
+
 export const tweetSchema=object({
   text:string({
     required_error:'Text is required'
@@ -14,6 +15,7 @@ export const tweetSchema=object({
 })
 
 const MainPageTw = () => {
+  const fileInput = useRef(null);
   const [text, setText] = useState("")
   const [error,setError] = useState(false);
 
@@ -45,9 +47,13 @@ const MainPageTw = () => {
     console.log(e.target.files);
   };
 
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) : Promise<void> {
-    e.preventDefault();
+  const handleSubbmitCreatePost = () => {
+    console.log("click add images")
+    fileInput.current?.click();
+  };
+  // async function handleSubmit(e: React.MouseEventHandler<HTMLButtonElement>): Promise<void> {
+  async function handleSubmit() {
+    // e.preventDefault();
   console.log("dsa")
     try {
       await tweetSchema.parse({ text, imageUrls })
@@ -56,13 +62,10 @@ const MainPageTw = () => {
       setError(er.message);
       return;
     }
-    
-
-    mutateAsync({ text, imageUrls });
-
+    mutateAsync({ text, imageUrls }); 
   }
   return (
-    <main className='flex flex-col p-0 m-0 border-none grow shrink basis-auto  text-[15px] relative w-[1197px] bg-bgcl pointer-events-auto'>
+    <main className='flex flex-col p-0 m-0 border-none grow items-start  shrink basis-auto  text-[15px] relative  bg-bgcl pointer-events-auto'>
       <div className='w-[990px] flex flex-col shrink grow  basis-auto m-0 p-0 min-h-0 min-w-0 relative z-0'>
         {/* content */}
         <div className='max-w-[600px] w-full z-[1] border-x border-bordercl bg-bgcl bg-red-200 min-h-screen h-full pointer-events-auto'>
@@ -70,22 +73,22 @@ const MainPageTw = () => {
           <div className='sticky  top-0 z-[3] pointer-events-auto text-[15px]'>
             <div className='h-[53px] max-w-[1000px] cursor-pointer flex p-4 w-full items-center justify-start mx-auto'>
               <h1 className='text-[20px] leading-6'>
-                <span className='block'>Home</span>
+                <span className='block font-semibold'>Home</span>
               </h1>
             </div>
           </div>
           {/* create tweet //  new tweet */}
           <div className='css-intial  pointer-events-auto  bg-slate-400'>
             <div className='pb-1'>
-              <div className='flex  py-1 w-full h-[116px] relative  '>
+              <div className='flex  py-1 w-full  relative  '>
                 {/* avatar */}
-                <div className='flex flex-col  mt-1 mr-3  w-[48px] z-0 relative bg-black '>
+                <div className='flex flex-col  mt-1 mr-3  w-[48px] z-0 relative bg-transparent '>
                   <div className='pb-[100%] pointer-events-auto block'>
                   </div>
                   <div className='absolute top-0 left-0 w-[48px] h-[48px]'>
                     <div className='w-full h-full'>
                       <Image className='rounded-full'
-                        src="/" alt="Picture of the author"
+                        src="https://cdn.discordapp.com/icons/937768886412132392/6693a262a7711148211abae46fe393a4.webp?size=96" alt="Picture of the author"
                         width={500}
                         height={500} 
                       
@@ -94,39 +97,63 @@ const MainPageTw = () => {
                   </div>
                 </div>
                 {/* right side of create tweet */}
-                <div className='css-intial pt-1'>
+                <div className='flex flex-col justify-center items-start box-border  mt-1 bg-red-400 w-full h-full px-1'>
                   {/* text */}
-                  <div className='h-[56px]'>
-                    <div className='m-[2px] w-full'>
-                      <div className='py-3'>
-                        <form onSubmit={handleSubmit} className="flex w-full flex-col p-4 border-2 rounded-md ">
-                          <input type="file" multiple accept='image/*' onChange={onImageChange} />
-                          {imageUrls.map(imageSrc =>
-                            <img key={Math.random()} className='w-[200px] h-[200px]' src={imageSrc} alt="" />)
-                          }
+                  <div className=' w-full'>
+                    <div className=''>
+                      <form id="createPost" onSubmit={handleSubmit} className="flex w-full flex-col py-4 px-1 border-none rounded-md ">
+                        
 
-                          <textarea onChange={(e) => setText(e.target.value)} />
-                          <div>
-                            <button type='submit'>tweet</button>
-                          </div>
-                        </form>
+                        <textarea onChange={(e) => setText(e.target.value)} className='border-none active:border-none' />
+                        <div>
+                          <button className='hidden' type='submit'>tweet</button>
+                        </div>
+                      </form>
 
-                        {error && JSON.stringify(error)}
+                      {error && JSON.stringify(error)}
 
-                      </div>
                     </div>
 
                   </div>
                   {/* things added to a post */}
-                  <div>
-                    {/* <label htmlFor="image">Choose a profile picture:</label> */}
+                  
+                  <div className=' flex flex-col z-0 relative w-full'>
+                    <div className='box-border flex items-center  flex-wrap z-[1] justify-between pointer-events-auto bg-primary_bg w-full'>
+                      <div className='flex items-center justify-center mt-3'>
+                        <div className='w-[36px] h-[36px]  rounded-[9999px] flex items-center justify-center cursor-pointer '
+                          onClick={handleSubbmitCreatePost
+                          }
+                        >
+                          <div className='flex items-center justify-center grow'>
+                            <GrImage/>
+                          </div>
+                        </div>
+                        <input
+                          className=' w-[0.1px] h-[0.1px] z-[-1] opacity-0 absolute overflow-hidden appearance-none cursor-default'
+                          type="file" multiple accept='image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime' onChange={onImageChange} 
+                          ref={fileInput}
+                          />
+                      </div>
+                      <div>
+                        <button 
+                          onClick={handleSubmit}
+                        >Tweet</button>
+                      </div>
+                    </div>
+                    
                     {/* <ImagePicker/> */}
+
+                    {/* 
+                        {imageUrls.map(imageSrc =>
+                          <img key={Math.random()} className='w-[200px] h-[200px]' src={imageSrc} alt="" />)
+                    }  */}
+                        
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <section>
+          <section className='bg-white'>
             <Post/>
           </section>
         </div>

@@ -16,7 +16,7 @@ export const tweetRouter = router({
           },
         },
         imgsTw: {
-          create: imageUrls.map((url) => ({ url })),
+          create: imageUrls.map((url) => ({ url})),
         },
       },
     });
@@ -45,19 +45,21 @@ export const tweetRouter = router({
         orderBy: {
           createdAt: "desc",
         },
-        include: {
-          author: {
-            select: {
-              name: true,
-              image: true,
-              id: true,
+        select: {
+          id:true,
+          text: true,
+            author: {
+              select: {
+                name: true,
+                image: true,
+                id: true,
+              },
             },
-          },
-          imgsTw: {
-            select: {
-              url:true,
+            imgsTw: {
+              select: {
+                url: true,
+              },
             },
-          },
         },
       });
       return {

@@ -53,5 +53,25 @@ textarea::-webkit-resizer {
     position: relative;
     z-index: 0;
 }
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+input[type=file] {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  overflow-clip-box: padding-box;
+  color: unset;
 
+  /* Revert rules which apply on all inputs. */
+  appearance: none;
+  -moz-default-appearance: none;
+  cursor: default;
+
+  border: none;
+  background-color: transparent;
+  padding: unset;
+}
 
