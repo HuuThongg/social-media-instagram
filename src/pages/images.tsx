@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Head from 'next/head'
 import { trpc } from '../utils/trpc';
-import { S3 } from "aws-sdk";
 
 const images = () => {
 
@@ -13,25 +12,37 @@ const images = () => {
   
   const {mutateAsync: deleteAllImages ,  } = trpc.tweet.deleteImage.useMutation();
   const onFileChange = (e: React.FormEvent<HTMLInputElement>) => {
-    setFile(e.currentTarget.files?.[0]);
+    
+    // setFile(e.currentTarget.files?.[0]);
+    console.log("jello");
+
+    const files = e.currentTarget.files;
+    if(!files) return;
+    const fileList = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      fileList.push(file);
+      
+    }
+    setFile(fileList);
+    console.log(files.length);
   }
   const uploadImage = async (e: React.FormEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (!file) return;
 
     const { url, fields }: { url: string, fields: any } = await createPresignedUrl() as any;
+    
     const data = { ...fields, 'Content-type': file.type, file }
-
     const formData = new FormData();
     for (const name in data) {
       formData.append(name, data[name]);
     }
-
+    console.log(url);
     await fetch(url,{
       method: 'POST',
       body: formData,
     })
-    console.log("dsadasd");
     refetchImages();
   }
 
@@ -53,7 +64,7 @@ const images = () => {
         <button onClick={handleDelete}> delete</button>
         <form onSubmit={uploadImage}>
           Upload New Image
-          <input onChange={onFileChange} type="file" accept='image/*, video/*' multiple></input>
+          <input onChange={onFileChange} type="file" accept='image/*' multiple></input>
           <button type='submit'>Upload</button>
         </form>
         <div className='grid grid-cols-4'>

@@ -1,5 +1,5 @@
 import { router, protectedProcedure, publicProcedure } from "../trpc";
-import { z } from "zod";
+import { promise, z } from "zod";
 import { tweetSchema } from "../../../components/main/MainPageTw";
 import S3 from "aws-sdk/clients/s3";
 
@@ -14,21 +14,23 @@ const s3 = new S3({
 export const tweetRouter = router({
   create: protectedProcedure.input(tweetSchema).mutation(({ ctx, input }) => {
     const { prisma, session } = ctx;
-    const { text, imageUrls } = input;
+    const { text } = input;
     const usereId = session.user.id;
-    return prisma.tweet.create({
-      data: {
-        text,
-        author: {
-          connect: {
-            id: usereId,
+    return prisma.tweet
+      .create({
+        data: {
+          text,
+          author: {
+            connect: {
+              id: usereId,
+            },
           },
+          // images: {
+          //   create: imageUrls.map((url) => ({ url })),
+          // },
         },
-        // imgsTw: {
-        //   create: imageUrls.map((url) => ({ url })),
-        // },
-      },
-    });
+      })
+      .then((tweet) => ({ tweetId: tweet.id }));
   }),
   timeline: publicProcedure
     .input(
@@ -64,11 +66,6 @@ export const tweetRouter = router({
               id: true,
             },
           },
-          // imgsTw: {
-          //   select: {
-          //     url: true,
-          //   },
-          // },
         },
       });
       return {
@@ -76,37 +73,80 @@ export const tweetRouter = router({
       };
     }),
   createPresignedUrl: protectedProcedure
-    // .input()
-    .mutation(async ({ ctx }) => {
+    .input(
+      z.object({ tweetId: z.string(), n: z.number() })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
       if (!ctx.session) {
         throw new Error("You must be logged in");
       }
-      const userId = ctx.session.user.id;
 
-      const image = await prisma.image.create({
-        data: {
-          userId,
-        },
-      });
-      try {
-        const signed = await s3.createPresignedPost({
-          Fields: {
-            key: `${userId}/${image.id}`,
-          },
-          Conditions: [
-            ["starts-with", "$Content-Type", "image/"],
-            // ["content-length-range", 1, 100000000],
-          ],
-          Expires: 600,
-          Bucket: process.env.BUCKET_NAME,
-          // Bucket: "twcloneimages",
-        });
-        return signed;
-      } catch (err) {
-        // Handle the error here
-        throw new Error("You must be logged in");
-      }
+      const userId = ctx.session.user.id;
+      const {n,tweetId} = input;
+      const images = await  Array.from({ length: n }).map(
+        async (_, i) => {
+          try {
+            return await prisma.images.create({
+              data: {
+                  tweetId,
+                // tweetId: {
+                //   connect: {
+                //     tweetId,
+                //   },
+                // },
+                // userId: {
+                //   connect: {
+                //     id: userId,
+                //   },
+                // },
+              },
+            });
+          } catch (err) {
+            console.error(err);
+            throw new Error(" cant create images from tweet")
+          }
+        }
+      );
+      // authorId: {
+      //   connect: {
+      //     id: userId,
+      //   },
+      // },
+      // const images = await prisma.tweet.create({
+      //   data: {
+      //     images: {
+      //       create: {
+      //         tweetId: userId,
+      //       }
+      //     },
+      //   },
+      // });
+      const signedUrls = [];
+      await Promise.all(
+        images.map(async (image) => {
+          try {
+            const signed = await s3.createPresignedPost({
+              Fields: {
+                key: `${userId}/${(await image).id}`,
+              },
+              Conditions: [
+                ["starts-with", "$Content-Type", "image/"],
+                // ["content-length-range", 1, 100000000],
+              ],
+              Expires: 600,
+              Bucket: process.env.BUCKET_NAME,
+              // Bucket: "twcloneimages",
+            });
+            signedUrls.push(signed);
+          } catch (err) {
+            // Handle the error here
+            throw new Error("You must be logged in");
+          }
+        })
+      );
+      return signedUrls;
+
       // return new Promise((resolve, reject) => {
       //   s3.createPresignedPost(
       //     {
@@ -128,36 +168,33 @@ export const tweetRouter = router({
       //   );
       // });
     }),
-  getImagesForUser: protectedProcedure
-    // .input()
-    .query(async ({ ctx }) => {
-      const { prisma } = ctx;
-      if (!ctx.session) {
-        throw new Error("You must be logged in");
-      }
-      const userId = ctx.session.user.id;
+  getImagesForUser: protectedProcedure.query(async ({ ctx }) => {
+    const { prisma } = ctx;
+    if (!ctx.session) {
+      throw new Error("You must be logged in");
+    }
+    const userId = ctx.session.user.id;
 
-      const images = await prisma.image.findMany({
-        where: {
-          userId: ctx.session.user.id,
-        },
-      });
+    const images = await prisma.image.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+    });
 
-      const extendedImages = await Promise.all(
-        images.map(async (image) => {
-          return {
-            ...image,
-            url: await s3.getSignedUrlPromise("getObject", {
-              Bucket: process.env.BUCKET_NAME,
-              Key: `${userId}/${image.id}`,
-            }),
-          };
-        })
-      );
-      return extendedImages;
-    }),
-  deleteImage: protectedProcedure
-  .mutation(async ({ ctx }) => {
+    const extendedImages = await Promise.all(
+      images.map(async (image) => {
+        return {
+          ...image,
+          url: await s3.getSignedUrlPromise("getObject", {
+            Bucket: process.env.BUCKET_NAME,
+            Key: `${userId}/${image.id}`,
+          }),
+        };
+      })
+    );
+    return extendedImages;
+  }),
+  deleteImage: protectedProcedure.mutation(async ({ ctx }) => {
     const { prisma } = ctx;
     if (!ctx.session) {
       throw new Error("You must be logged in");
@@ -191,6 +228,5 @@ export const tweetRouter = router({
         },
       }),
     ]);
-    
   }),
 });

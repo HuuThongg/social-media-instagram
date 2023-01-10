@@ -8,7 +8,7 @@ import { SideBar } from "../components/sidebar";
 import MainPageTw from "../components/main/MainPageTw";
 
 const Home: NextPage = () => {
-  const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
+  // const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
   // const {data } = useSession();
   // console.log(data);
   // console.log(data?.user?.image);
