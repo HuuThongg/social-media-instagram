@@ -50,16 +50,16 @@ function Tweet({
 
 
 
-const Post = () => {
+const Post = ({ key, imageUrl }) => {
 
   const { data } = trpc.tweet.timeline.useQuery({
-    limit: 2,
+    limit: 4,
   })
   
   return (
     
     <div>
-      {data && JSON.stringify(data)}
+      {/* {data && JSON.stringify(data)} */}
       <div className='w-full pointer-events-auto relative border-b border-bordercl shrink-0 grow-0 basis-auto flex flex-col '>
         <div className='css-intial'>
           <article className='px-4'>
@@ -73,6 +73,9 @@ const Post = () => {
               {/* {JSON.stringify(data)} */}
               {data?.tweets.map((tweet) => {
                 return <Tweet key={tweet.id} tweet={tweet} ></Tweet>
+                // <div key={image.id} className='col-span-4'>
+                //   <img src={image.url} alt="alt" />
+                // </div>
               })}
             </div>
           </article>

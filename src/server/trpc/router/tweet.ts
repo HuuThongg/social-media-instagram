@@ -1,5 +1,5 @@
 import { router, protectedProcedure, publicProcedure } from "../trpc";
-import { promise, z } from "zod";
+import {  number, z } from "zod";
 import { tweetSchema } from "../../../components/main/MainPageTw";
 import S3 from "aws-sdk/clients/s3";
 
@@ -73,9 +73,7 @@ export const tweetRouter = router({
       };
     }),
   createPresignedUrl: protectedProcedure
-    .input(
-      z.object({ tweetId: z.string(), n: z.number() })
-    )
+    .input(z.object({ tweetId: z.string(), n: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
       if (!ctx.session) {
@@ -83,52 +81,27 @@ export const tweetRouter = router({
       }
 
       const userId = ctx.session.user.id;
-      const {n,tweetId} = input;
-      const images = await  Array.from({ length: n }).map(
-        async (_, i) => {
-          try {
-            return await prisma.images.create({
-              data: {
-                  tweetId,
-                // tweetId: {
-                //   connect: {
-                //     tweetId,
-                //   },
-                // },
-                // userId: {
-                //   connect: {
-                //     id: userId,
-                //   },
-                // },
-              },
-            });
-          } catch (err) {
-            console.error(err);
-            throw new Error(" cant create images from tweet")
-          }
+      const { n, tweetId } = input;
+      const images = await Array.from({ length: n }).map(async (_, i) => {
+        try {
+          return await prisma.images.create({
+            data: {
+              tweetId,
+            },
+          });
+        } catch (err) {
+          console.error(err);
+          throw new Error(" cant create images from tweet");
         }
-      );
-      // authorId: {
-      //   connect: {
-      //     id: userId,
-      //   },
-      // },
-      // const images = await prisma.tweet.create({
-      //   data: {
-      //     images: {
-      //       create: {
-      //         tweetId: userId,
-      //       }
-      //     },
-      //   },
-      // });
-      const signedUrls = [];
+      });
+
+      const signedUrls: never[] = [];
       await Promise.all(
         images.map(async (image) => {
           try {
             const signed = await s3.createPresignedPost({
               Fields: {
-                key: `${userId}/${(await image).id}`,
+                key: `${tweetId}/${(await image).id}`,
               },
               Conditions: [
                 ["starts-with", "$Content-Type", "image/"],
@@ -168,65 +141,71 @@ export const tweetRouter = router({
       //   );
       // });
     }),
-  getImagesForUser: protectedProcedure.query(async ({ ctx }) => {
-    const { prisma } = ctx;
-    if (!ctx.session) {
-      throw new Error("You must be logged in");
-    }
-    const userId = ctx.session.user.id;
-
-    const images = await prisma.image.findMany({
-      where: {
-        userId: ctx.session.user.id,
-      },
-    });
-
-    const extendedImages = await Promise.all(
-      images.map(async (image) => {
-        return {
-          ...image,
-          url: await s3.getSignedUrlPromise("getObject", {
-            Bucket: process.env.BUCKET_NAME,
-            Key: `${userId}/${image.id}`,
-          }),
-        };
-      })
-    );
-    return extendedImages;
-  }),
-  deleteImage: protectedProcedure.mutation(async ({ ctx }) => {
-    const { prisma } = ctx;
-    if (!ctx.session) {
-      throw new Error("You must be logged in");
-    }
-    const userId = ctx.session.user.id;
-
-    const images = await prisma.image.findMany({
-      where: {
-        userId: ctx.session.user.id,
-      },
-    });
-
-    const s3DeletePromises = images.map((image) => {
-      const bucket = process.env.BUCKET_NAME;
-      if (!bucket) {
-        throw new Error("Bucket name is not defined");
+  getImagesForUser: protectedProcedure
+    .input(z.object({ tweetId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { prisma } = ctx;
+      const { tweetId } = input;
+      if (!ctx.session) {
+        throw new Error("You must be logged in");
       }
-      return s3
-        .deleteObject({
-          Bucket: bucket,
-          Key: `${userId}/${image.id}`,
-        })
-        .promise();
-    });
+      const userId = ctx.session.user.id;
 
-    await Promise.all([
-      ...s3DeletePromises,
-      prisma.image.deleteMany({
+      const images = await prisma.images.findMany({
         where: {
-          userId,
+          tweetId: tweetId,
         },
-      }),
-    ]);
-  }),
+      });
+
+      const extendedImages = await Promise.all(
+        images.map(async (image) => {
+          return {
+            ...image,
+            url: await s3.getSignedUrlPromise("getObject", {
+              Bucket: process.env.BUCKET_NAME,
+              Key: `${tweetId}/${image.id}`,
+            }),
+          };
+        })
+      );
+      return extendedImages;
+    }),
+  deleteImage: protectedProcedure
+    .input(z.object({ tweetId: z.string() }))
+    .mutation(async ({ ctx,input }) => {
+      const { prisma } = ctx;
+      const { tweetId } = input;
+      if (!ctx.session) {
+        throw new Error("You must be logged in");
+      }
+      const userId = ctx.session.user.id;
+
+      const images = await prisma.images.findMany({
+        where: {
+          tweetId,
+        },
+      });
+
+      const s3DeletePromises = images.map((image) => {
+        const bucket = process.env.BUCKET_NAME;
+        if (!bucket) {
+          throw new Error("Bucket name is not defined");
+        }
+        return s3
+          .deleteObject({
+            Bucket: bucket,
+            Key: `${tweetId}/${image.id}`,
+          })
+          .promise();
+      });
+
+      await Promise.all([
+        ...s3DeletePromises,
+        prisma.image.deleteMany({
+          where: {
+            userId,
+          },
+        }),
+      ]);
+    }),
 });

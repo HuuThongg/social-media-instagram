@@ -131,7 +131,7 @@
 
   import React, { useState, useEffect, useRef } from 'react';
 
-  import Post from '../twpost/Post'
+  import Posts from '../twpost/Posts'
   import Image from 'next/image'
   import ImagePicker from '../createPost/ImagePicker'
   import { object, string } from 'zod'
@@ -160,29 +160,23 @@
     const { mutateAsync, data } = trpc.tweet.create.useMutation({
       onSuccess: async (data) => {
         setText("")
-        // try {
-        //   if (data && data.tweetId) {
-        //     console.log("tweet created successfully with id :", data.tweetId);
-        //     const { signedURLs } = await createPresignedUrl({ tweetId: data.tweetId, n: file.length }) as any;
-        //   }
-        // } catch (error) {
-        //   console.error("Error Occured on catch", error)
-        //   // handle error here
-        // }
       },
       onError: (error) => {
         console.error("Error Occured on OnError", error)
-        // handle error here
       },
     })
     const { mutateAsync: createPresignedUrl } = trpc.tweet.createPresignedUrl.useMutation();
 
-    const { data: images, refetch: refetchImages } = trpc.tweet.getImagesForUser.useQuery();
+    const { data:tweetData } = trpc.tweet.timeline.useQuery({
+      limit: 99,
+    })
+    const twId: string  =tweetData?.tweets[2]?.id;
 
-    const { mutateAsync: deleteAllImages, } = trpc.tweet.deleteImage.useMutation();
+    const { data: images, refetch: refetchImages } = trpc.tweet.getImagesForUser.useQuery({ tweetId : twId });
+
+    const { mutateAsync: deleteAllImages } = trpc.tweet.deleteImage.useMutation({tweetId : twId});
 
     const onFileChange = (e: React.FormEvent<HTMLInputElement>) => {
-      // setFile(e.currentTarget.files?.[0]);
       const files = e.currentTarget.files;
       if (!files) return;
       const fileList = [];
@@ -195,16 +189,14 @@
     }
 
     const selectImage = () => {
-      console.log("click add images")
       fileInput.current?.click();
     };
-    // async function handleSubmit(e: React.MouseEventHandler<HTMLButtonElement>): Promise<void> {
-    async function handleSubmit(e) {
+    
+    async function handleSubmit(e: React.FormEvent<HTMLInputElement>) {
       e.preventDefault();
       try {
         await tweetSchema.parse({ text })
       } catch (er: unknown) {
-        console.log("tweet schema error");
         setError(er.message);
         return;
       }
@@ -212,7 +204,6 @@
       const tweetId = result.tweetId;
       console.log(tweetId);
       const data = await createPresignedUrl({ tweetId: tweetId, n: file.length }) as any;
-      console.log("object");
       // data is an array of urls and fields
       // [Log] Array (2)
       // 0 { url: "https://s3.us-west-1.amazonaws.com/twcloneimages", fields: Object }
@@ -222,7 +213,7 @@
       console.log(data)
       await uploadImage(data, e);
     }
-    function postData (url, fields, file) {
+    function postData (url: RequestInfo | URL, fields: any, file: { type: any; }) {
       const data = { ...fields, 'Content-type': file.type, file }
       const formData = new FormData();
       for (const name in data) {
@@ -235,26 +226,17 @@
         body: formData,
       });
     }
-    async function uploadImage(data ,e: React.FormEvent<HTMLInputElement>)  {
+    async function uploadImage(data: any[] ,e: React.FormEvent<HTMLInputElement>)  {
       e.preventDefault();
       if (!file) return;
       // const amountFiles : number = file.length;
 
       // const { url, fields }: { url: string, fields: any } = await createPresignedUrl({tweet.tweetId ,n: amountFiles}) as any;
-      const postDataPromise = data.map((imgI4,index) =>
-        
-        // const postDataPromise = imgI4.url.map((url, index) => {
-        //   console.log(imgI4[index]);
-          postData(imgI4.url, imgI4.fields, file[index])
-        
-        // );
+      const postDataPromise = data.map((imgI4: { url: any; fields: any; },index: string | number) => postData(imgI4.url, imgI4.fields, file[index])
       )
-      
       Promise.all(postDataPromise)
-        .then((res) => {
-          //handle success
+        .then(() => {
           refetchImages();
-
         })
     }
 
@@ -355,11 +337,12 @@
               </div>
             </div>
             <section className='bg-white'>
-              <Post />
+              {/* <Post /> */}
               {images && images.map(image => (
-                <div key={image.id} className='col-span-4'>
-                  <img src={image.url} alt="alt" />
-                </div>
+                // <div key={image.id} className='col-span-4'>
+                //   <img src={image.url} alt="alt" />
+                // </div>
+                <Posts key={image.id} imageUrl={image.url}/>
               ))}
             </section>
           </div>

@@ -1,9 +1,9 @@
 import React from 'react'
 import Post from './Post'
 
-const Posts = () => {
+const Posts = ({ key, imageUrl }) => {
   return (
-    <Post/>
+    <Post key={key} imageUrl={imageUrl}  />
     
   )
 }

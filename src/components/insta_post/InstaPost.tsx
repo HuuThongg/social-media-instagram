@@ -4,7 +4,7 @@ import { VscEllipsis } from 'react-icons/vsc'
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2"
 import { FiHeart, FiMessageSquare, FiSend, FiBookmark } from 'react-icons/fi'
 
-const Post = () => {
+const InstaPost = () => {
 
   const [amountXtoTranslate, setAmountXtoTranslate] =useState(0);
 
@@ -231,4 +231,4 @@ const Post = () => {
   )
 }
 
-export default Post
+export default InstaPost
