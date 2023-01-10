@@ -7,7 +7,7 @@ function Tweet({
   // input
 }:{tweet:RouterOutputs['tweet']['timeline']['tweets'][number]}){
   let imgUrlsObject ={...tweet.imgsTw}
-  console.log(imgUrlsObject[0]?.url)
+  // console.log(imgUrlsObject[0]?.url)
   
 
   return( 
