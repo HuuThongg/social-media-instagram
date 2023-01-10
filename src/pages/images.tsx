@@ -10,7 +10,8 @@ const images = () => {
   const  { mutateAsync: createPresignedUrl } = trpc.tweet.createPresignedUrl.useMutation();
   
   const { data: images, refetch: refetchImages } = trpc.tweet.getImagesForUser.useQuery();
-
+  
+  const {mutateAsync: deleteAllImages ,  } = trpc.tweet.deleteImage.useMutation();
   const onFileChange = (e: React.FormEvent<HTMLInputElement>) => {
     setFile(e.currentTarget.files?.[0]);
   }
@@ -20,6 +21,7 @@ const images = () => {
 
     const { url, fields }: { url: string, fields: any } = await createPresignedUrl() as any;
     const data = { ...fields, 'Content-type': file.type, file }
+
     const formData = new FormData();
     for (const name in data) {
       formData.append(name, data[name]);
@@ -32,7 +34,11 @@ const images = () => {
     console.log("dsadasd");
     refetchImages();
   }
-  // console.log(images);
+
+  const handleDelete = async (e:React.MouseEvent<HTMLButtonElement>)=>{
+    e.preventDefault();
+    deleteAllImages();
+  }
   return (
     <>
       <Head>
@@ -44,9 +50,10 @@ const images = () => {
         <h1 className='text-4xl mb-4'>
           Images
         </h1>
+        <button onClick={handleDelete}> delete</button>
         <form onSubmit={uploadImage}>
           Upload New Image
-          <input onChange={onFileChange} type="file" accept='image/*, video/*'></input>
+          <input onChange={onFileChange} type="file" accept='image/*, video/*' multiple></input>
           <button type='submit'>Upload</button>
         </form>
         <div className='grid grid-cols-4'>

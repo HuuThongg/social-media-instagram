@@ -89,26 +89,44 @@ export const tweetRouter = router({
           userId,
         },
       });
-
-      return new Promise((resolve, reject) => {
-        s3.createPresignedPost(
-          {
-            Fields: {
-              key: `${userId}/${image.id}`,
-            },
-            Conditions: [
-              ["starts-with", "$Content-Type", "image/"],
-              // ["content-length-range", 1, 100000000],
-            ],
-            Expires: 60,
-            Bucket: "twcloneimages",
+      try {
+        const signed = await s3.createPresignedPost({
+          Fields: {
+            key: `${userId}/${image.id}`,
           },
-          (err, signed) => {
-            if (err) return reject(err);
-            resolve(signed);
-          }
-        );
-      });
+          Conditions: [
+            ["starts-with", "$Content-Type", "image/"],
+            // ["content-length-range", 1, 100000000],
+          ],
+          Expires: 600,
+          Bucket: process.env.BUCKET_NAME,
+          // Bucket: "twcloneimages",
+        });
+        return signed;
+      } catch (err) {
+        // Handle the error here
+        throw new Error("You must be logged in");
+      }
+      // return new Promise((resolve, reject) => {
+      //   s3.createPresignedPost(
+      //     {
+      //       Fields: {
+      //         key: `${userId}/${image.id}`,
+      //       },
+      //       Conditions: [
+      //         ["starts-with", "$Content-Type", "image/"],
+      //         // ["content-length-range", 1, 100000000],
+      //       ],
+      //       Expires: 600,
+      //       Bucket: process.env.BUCKET_NAME,
+      //       // Bucket: "twcloneimages",
+      //     },
+      //     (err, signed) => {
+      //       if (err) return reject(err);
+      //       resolve(signed);
+      //     }
+      //   );
+      // });
     }),
   getImagesForUser: protectedProcedure
     // .input()
@@ -136,8 +154,43 @@ export const tweetRouter = router({
           };
         })
       );
-      console.log("object");
-      console.log(extendedImages);
       return extendedImages;
     }),
+  deleteImage: protectedProcedure
+  .mutation(async ({ ctx }) => {
+    const { prisma } = ctx;
+    if (!ctx.session) {
+      throw new Error("You must be logged in");
+    }
+    const userId = ctx.session.user.id;
+
+    const images = await prisma.image.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+    });
+
+    const s3DeletePromises = images.map((image) => {
+      const bucket = process.env.BUCKET_NAME;
+      if (!bucket) {
+        throw new Error("Bucket name is not defined");
+      }
+      return s3
+        .deleteObject({
+          Bucket: bucket,
+          Key: `${userId}/${image.id}`,
+        })
+        .promise();
+    });
+
+    await Promise.all([
+      ...s3DeletePromises,
+      prisma.image.deleteMany({
+        where: {
+          userId,
+        },
+      }),
+    ]);
+    
+  }),
 });
