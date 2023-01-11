@@ -4,7 +4,6 @@ const InstaPosts = () => {
   return (
     <>
       <Post/>
-      <Post/>
     </>
 
   )

@@ -1,2 +1,2 @@
-import Posts from "./Posts";
-export {Posts}
+import TweetLine from "./TweetLine";
+export { TweetLine };
