@@ -1,10 +1,33 @@
 import Link from 'next/link'
 
 import { FiHeart, FiMessageSquare, FiSend, FiBookmark } from 'react-icons/fi'
-import {trpc } from '../../utils/trpc'
 
-const Interaction = ({tweetId, likeFn,unlikeFn , hasLike}) => {
-  
+import dayjs from 'dayjs'
+import relativeTime from "dayjs/plugin/relativeTime";
+import updateLocal from "dayjs/plugin/updateLocale";
+
+dayjs.extend(relativeTime);
+dayjs.extend(updateLocal);
+
+dayjs.updateLocale("en", {
+  relativeTime: {
+    future: "in %s",
+    past: "%s",
+    s: "1m",
+    m: "1m",
+    mm: "%dm",
+    h: "1h",
+    hh: "%dh",
+    d: "1d",
+    dd: "%dd",
+    M: "1M",
+    MM: "%dM",
+    y: "1y",
+    yy: "%dy",
+  },
+});
+
+const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount }) => {
   return (
     <div className='shrink-0 grow-0 basis-auto  flex flex-col justify-start '>
       <div className=' rounded-lg pointer-events-auto relative bg-primary_bg '>
@@ -39,7 +62,7 @@ const Interaction = ({tweetId, likeFn,unlikeFn , hasLike}) => {
           {/* likes */}
           <section className='px-3 mb-2'>
             <div className='flex space-x-2'>
-              <span>399</span>
+              <span>{likeCount}</span>
               <p>likes</p>
             </div>
           </section>
@@ -111,7 +134,7 @@ const Interaction = ({tweetId, likeFn,unlikeFn , hasLike}) => {
           {/* time */}
           <div className=' pl-3 mb-3 pointer-events-auto'>
             <div className='text-secondary_text text-[14px]'>
-              <span className='block text-[12px]'>1 DAY AGO</span>
+              <span className='block text-[12px]'>{dayjs(twCreateAt).fromNow()}</span>
             </div>
           </div>
 

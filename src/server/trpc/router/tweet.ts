@@ -1,5 +1,5 @@
 import { router, protectedProcedure, publicProcedure } from "../trpc";
-import {  number, z } from "zod";
+import {   z } from "zod";
 import { tweetSchema } from "../../../components/main/MainPageTw";
 import S3 from "aws-sdk/clients/s3";
 
@@ -32,37 +32,38 @@ export const tweetRouter = router({
   timeline: publicProcedure
     .input(
       z.object({
-        // where: z
-        //   .object({
-        //     author: z
-        //       .object({
-        //         name: z.string().optional(),
-        //       })
-        //       .optional(),
-        //   })
-        //   .optional(),
+        where: 
+          z.object({
+            author: z
+              .object({
+                name: z.string().optional(),
+              })
+            .optional(),
+          })
+          .optional(),
         cursor: z.string().nullish(),
         limit: z.number().min(1).max(100).default(10),
       })
     )
     .query(async ({ ctx, input }) => {
       const { prisma } = ctx;
-      const { cursor, limit } = input;
+      const { cursor, limit, where } = input;
       const userId = ctx.session?.user?.id
       const tweets = await prisma.tweet.findMany({
         take: limit + 1,
+        where,
         orderBy: {
           createdAt: "desc",
         },
         cursor: cursor ? { id: cursor } : undefined,
         select: {
-          like:{
-            where:{
+          like: {
+            where: {
               userId,
             },
-            select:{
+            select: {
               userId: true,
-            }
+            },
           },
           id: true,
           text: true,
@@ -73,6 +74,12 @@ export const tweetRouter = router({
               id: true,
             },
           },
+          _count:{
+            select:{
+              like:true,
+            }
+          },
+          createdAt: true,
         },
       });
 
@@ -97,9 +104,8 @@ export const tweetRouter = router({
         throw new Error("You must be logged in");
       }
 
-      const userId = ctx.session.user.id;
       const { n, tweetId } = input;
-      const images = await Array.from({ length: n }).map(async (_, i) => {
+      const images = await Array.from({ length: n }).map(async (_) => {
         try {
           return await prisma.images.create({
             data: {
@@ -124,7 +130,7 @@ export const tweetRouter = router({
                 ["starts-with", "$Content-Type", "image/"],
                 // ["content-length-range", 1, 100000000],
               ],
-              Expires: 600,
+              Expires: 3600,
               Bucket: process.env.BUCKET_NAME,
               // Bucket: "twcloneimages",
             });
@@ -158,15 +164,12 @@ export const tweetRouter = router({
       //   );
       // });
     }),
-  getImagesForUser: protectedProcedure
+  getImagesForUser: publicProcedure
     .input(z.object({ tweetId: z.string() }))
     .query(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { tweetId } = input;
-      if (!ctx.session) {
-        throw new Error("You must be logged in");
-      }
-      const userId = ctx.session.user.id;
+      
 
       const images = await prisma.images.findMany({
         where: {

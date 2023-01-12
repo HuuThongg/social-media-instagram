@@ -1,9 +1,12 @@
 import React,{useEffect, useState} from 'react'
 import Tweet from './Tweet'
-import { trpc } from '../../utils/trpc'
+import { RouterInputs, trpc } from '../../utils/trpc'
 import {
   useQueryClient,
 } from "@tanstack/react-query";
+
+const LIMITTWEETS = 3;
+
 function useScrollPosition() {
   const [scrollPosition, setScrollPosition] = useState(0);
 
@@ -28,10 +31,11 @@ function useScrollPosition() {
   return scrollPosition;
 }
 
-const TweetLine = () => {
+const TweetLine = ({where = {}}:{where: RouterInputs['tweet']['timeline']['where']}) => {
   const scrollPosition = useScrollPosition();
   const { data, hasNextPage ,fetchNextPage, isFetching} = trpc.tweet.timeline.useInfiniteQuery({
-    limit:3,
+    limit: LIMITTWEETS,
+    where
   },{
     getNextPageParam: (lastPage)=> lastPage.nextCursor 
   })
@@ -61,7 +65,7 @@ const TweetLine = () => {
               </div>
               {/* tweet */}
               {tweetData?.map((tweet) => {
-                return <Tweet key={tweet.id} tweet={tweet}  client={client}></Tweet>
+                return <Tweet key={tweet.id} tweet={tweet} input={{ where, limit:LIMITTWEETS }}  client={client}></Tweet>
               })}
             </div>
           </article>

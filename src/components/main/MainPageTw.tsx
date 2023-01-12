@@ -129,15 +129,17 @@
 
 // export default MainPageTw
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 
 import Image from 'next/image'
 // import ImagePicker from '../createPost/ImagePicker'
+
 import { object, string } from 'zod'
 import { trpc } from '../../utils/trpc'
 import { GrImage } from 'react-icons/gr'
 import * as z from 'zod'
 import { TweetLine } from '../twpost';
+
 export const tweetSchema = z.optional(object({
   text: z.optional(string(
     {
@@ -152,6 +154,8 @@ export const tweetSchema = z.optional(object({
 
 
 const MainPageTw = () => {
+  const utils = trpc.useContext();
+
   const fileInput = useRef(null);
   const [text, setText] = useState("")
   const [error, setError] = useState(false);
@@ -160,16 +164,21 @@ const MainPageTw = () => {
   const { mutateAsync, data } = trpc.tweet.create.useMutation({
     onSuccess: async (data) => {
       setText("")
+      utils.tweet.timeline.invalidate();
     },
     onError: (error) => {
       console.error("Error Occured on OnError", error)
     },
   })
+
+
+
   const { mutateAsync: createPresignedUrl } = trpc.tweet.createPresignedUrl.useMutation();
 
   // const { data: tweetData } = trpc.tweet.timeline.useQuery({
   //   limit: 9,
   // })
+  
   // const twId: string = tweetData?.tweets[0]?.id;
 
   // const { data: images, refetch: refetchImages } = trpc.tweet.getImagesForUser.useQuery({ tweetId: twId });

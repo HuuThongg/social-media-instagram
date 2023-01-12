@@ -16,7 +16,7 @@ const loadImage = (setImageDimensions, imageUrl) => {
     console.error(err);
   };
 };
-const CD = () => {
+const Cd = () => {
   const [imageDimensions, setImageDimensions] = useState({});
   const imageUrl = "https://picsum.photos/200/300";
   console.log("0")
@@ -24,7 +24,7 @@ const CD = () => {
   useEffect(() => {
     loadImage(setImageDimensions, imageUrl);
     console.log(imageDimensions);
-  }, []);
+  }, [setImageDimensions, imageUrl]);
   console.log("1")
   return (
     <>
@@ -34,6 +34,7 @@ const CD = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div>
+        <h4>hello</h4>
         {Object.keys(imageDimensions).length === 0 ? (
           <b>Calculating...</b>
         ) : (
@@ -50,4 +51,4 @@ const CD = () => {
     </>
   );
 };
-export default CD
+export default Cd

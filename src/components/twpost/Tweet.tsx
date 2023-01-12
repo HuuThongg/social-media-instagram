@@ -1,4 +1,5 @@
 import { QueryClient , InfiniteData} from '@tanstack/react-query';
+import Link from 'next/link';
 
 import React from 'react'
 import { RouterOutputs, RouterInputs, trpc } from '../../utils/trpc'
@@ -10,7 +11,7 @@ function updateCache({
   variables,
   data,
   action,
-  // input,
+  input,
 }: {
   client: QueryClient;
   // input: RouterInputs["tweet"]["timeline"];
@@ -21,14 +22,17 @@ function updateCache({
     userId: string;
   };
   action: "like" | "unlike";
+  input: RouterInputs["tweet"]["timeline"];
 }) {
   client.setQueryData(
     [
       ["tweet", "timeline"],
       {
-        input: {
-          limit: 3
-        },
+        // input: {
+        //   limit: 3,
+        //   where:{},
+        // },
+        input,
         type: "infinite",
       },
     ],
@@ -47,9 +51,9 @@ function updateCache({
               return {
                 ...tweet,
                 like: action === "like" ? [data.userId] : [],
-                // _count: {
-                //   likes: tweet._count.likes + value,
-                // },
+                _count: {
+                  like: tweet._count.like + value,
+                },
               };
             } 
 
@@ -70,9 +74,10 @@ function updateCache({
 function Tweet({
   tweet,
   client,
-  // input
+  input
 }:{tweet:RouterOutputs['tweet']['timeline']['tweets'][number];
 client: QueryClient;
+    input: RouterInputs["tweet"]["timeline"];
 }){
 
   const tweetId : string = tweet.id;
@@ -81,12 +86,12 @@ client: QueryClient;
 
   const likeMutation = trpc.tweet.like.useMutation({
     onSuccess:(data, variables)=>{
-      updateCache({ client, variables, data, action:"like"});
+      updateCache({ client, variables, data, action:"like",input});
     },
   }).mutateAsync;
   const unlikeMutation = trpc.tweet.unlike.useMutation({
     onSuccess: (data, variables) => {
-      updateCache({ client, data, variables, action: "unlike" });
+      updateCache({ client, data, variables, action: "unlike",input });
     },
   }).mutateAsync;
   const hasLike = tweet.like.length > 0;
@@ -94,10 +99,12 @@ client: QueryClient;
     <div className='border-t border-bordercl pt-2'>
       <div className='flex flex-col'>
         <div className='flex '>
-
+          <Link href={`/${tweet.author.name}`}>
           {tweet.author.image &&
             <img src={tweet.author.image} alt={`${tweet.author.name} profile picture`}  className='rounded-full w-[40px] h-[40px]' />
           }
+          </Link>
+
           {/* text */}
           <div className='ml-2 '>
           {
@@ -126,7 +133,7 @@ client: QueryClient;
         </div>
       </div>
       <div>
-        <Interaction likeFn ={likeMutation} unlikeFn ={unlikeMutation} tweetId ={tweetId} hasLike = {hasLike}/>
+        <Interaction likeFn ={likeMutation} unlikeFn ={unlikeMutation} tweetId ={tweetId} hasLike = {hasLike} twCreateAt={tweet.createdAt} likeCount ={tweet._count.like}/>
       </div>
     </div>
   )
