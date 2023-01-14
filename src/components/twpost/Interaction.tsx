@@ -1,6 +1,7 @@
 import Link from 'next/link'
-
+import React,{useState} from 'react'
 import { FiHeart, FiMessageSquare, FiSend, FiBookmark } from 'react-icons/fi'
+import { trpc } from '../../utils/trpc'
 
 import dayjs from 'dayjs'
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -27,7 +28,29 @@ dayjs.updateLocale("en", {
   },
 });
 
-const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount }) => {
+const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount ,comments , hasComment, commentCount}) => {
+  const [ text,setText]= useState("")
+
+  const utils = trpc.useContext()
+
+  const {mutateAsync : createCommentFn}=trpc.tweet.createComment.useMutation({
+    onSuccess: async()=>{
+      setText("")
+      utils.tweet.timeline.invalidate();
+    }
+  });
+
+  const {mutateAsync: deleteCommentFn}=trpc.tweet.deleteComment.useMutation({
+    onSuccess: async () => {
+      utils.tweet.timeline.invalidate();
+    }
+  })
+
+
+  const handleSubmit= (e:React.FormEvent<HTMLFormElement>)=>{
+    e.preventDefault();
+    createCommentFn({text,tweetId})
+  }
   return (
     <div className='shrink-0 grow-0 basis-auto  flex flex-col justify-start '>
       <div className=' rounded-lg pointer-events-auto relative bg-primary_bg '>
@@ -97,12 +120,31 @@ const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount
               </div>
             </div>
             {/* comments */}
-            {/* vuew all  comments */}
-            <div className='mb-1'>
-              <Link href="#" className='w-full text-secondary_text '>View all 14 comments</Link>
-            </div>
+            {/* view all  comments */}
+            {hasComment && 
+              <div className='mb-1'>
+                <Link href="#" className='w-full text-secondary_text '>View all {commentCount} comments</Link>
+              </div>
+            }
+            {/* create comments */}
+            <form id="createComment" onSubmit={handleSubmit} className="flex w-full  py-4 px-1 border rounded-md justify-between" >
+              <textarea className='bg-white w-full' placeholder='Tweet your reply' onChange={(e) =>setText(e.target.value)} value={text}></textarea>
+              <button type="submit">comment</button>
+            </form>
+
             {/* show comments */}
             <div className='shrink-0 grow-0 flex flex-col mb-1'>
+              {/* render comments from database */}
+              {comments.map((comment) =>(
+                <div key={comment.id} className="flex py-1">
+                  <img src={comment.user.image} alt="user profile" 
+                  className='w-[24px] h-[24px] rounded-full'
+                  />
+                  <div>{comment.user.name}</div>
+                  <p className='ml-2' > {comment.text}</p>
+                  <button onClick={()=>{deleteCommentFn({commentId: comment.id})}} className='ml-auto'> delete</button>
+                </div>
+              ))}
               {/* each comment */}
               <div className=' shrink-0 grow-0 flex justify-start mb-1 items-center'>
                 <div className='w-full flex-auto'>

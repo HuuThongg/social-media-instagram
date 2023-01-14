@@ -171,8 +171,6 @@ const MainPageTw = () => {
     },
   })
 
-
-
   const { mutateAsync: createPresignedUrl } = trpc.tweet.createPresignedUrl.useMutation();
 
   // const { data: tweetData } = trpc.tweet.timeline.useQuery({
@@ -252,10 +250,10 @@ const MainPageTw = () => {
         {/* content */}
         <div className='max-w-[600px] w-full z-[1] border-x border-bordercl bg-bgcl  min-h-screen h-full pointer-events-auto'>
           {/* Home */}
-          <div className='sticky  top-0 z-[3] pointer-events-auto text-[15px]'>
+          <div className='sticky  top-0 z-[3] pointer-events-auto text-[15px] bg-homeCl '>
             <div className='h-[53px] max-w-[1000px] cursor-pointer flex p-4 w-full items-center justify-start mx-auto'>
               <h1 className='text-[20px] leading-6'>
-                <span className='block font-semibold'>Home</span>
+                <span className='block font-semibold blur-none text-black'>Home</span>
               </h1>
             </div>
           </div>

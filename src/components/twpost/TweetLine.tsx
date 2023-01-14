@@ -52,6 +52,7 @@ const TweetLine = ({where = {}}:{where: RouterInputs['tweet']['timeline']['where
 
   const  tweetData = data?.pages.flatMap((page)=>page.tweets) ??[];
 
+  const utils = trpc.useContext();
   return (
     <div>
       <div className='w-full pointer-events-auto relative border-b border-bordercl shrink-0 grow-0 basis-auto flex flex-col '>
@@ -65,7 +66,7 @@ const TweetLine = ({where = {}}:{where: RouterInputs['tweet']['timeline']['where
               </div>
               {/* tweet */}
               {tweetData?.map((tweet) => {
-                return <Tweet key={tweet.id} tweet={tweet} input={{ where, limit:LIMITTWEETS }}  client={client}></Tweet>
+                return <Tweet key={tweet.id} tweet={tweet} input={{ where, limit:LIMITTWEETS }}  client={client} utils={utils}></Tweet>
               })}
             </div>
           </article>

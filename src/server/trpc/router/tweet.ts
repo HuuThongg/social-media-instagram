@@ -15,14 +15,14 @@ export const tweetRouter = router({
   create: protectedProcedure.input(tweetSchema).mutation(({ ctx, input }) => {
     const { prisma, session } = ctx;
     const { text } = input;
-    const usereId = session.user.id;
+    const userId = session.user.id;
     return prisma.tweet
       .create({
         data: {
           text,
           author: {
             connect: {
-              id: usereId,
+              id: userId,
             },
           },
         },
@@ -32,13 +32,13 @@ export const tweetRouter = router({
   timeline: publicProcedure
     .input(
       z.object({
-        where: 
-          z.object({
+        where: z
+          .object({
             author: z
               .object({
                 name: z.string().optional(),
               })
-            .optional(),
+              .optional(),
           })
           .optional(),
         cursor: z.string().nullish(),
@@ -48,7 +48,7 @@ export const tweetRouter = router({
     .query(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { cursor, limit, where } = input;
-      const userId = ctx.session?.user?.id
+      const userId = ctx.session?.user?.id;
       const tweets = await prisma.tweet.findMany({
         take: limit + 1,
         where,
@@ -74,9 +74,22 @@ export const tweetRouter = router({
               id: true,
             },
           },
-          _count:{
-            select:{
-              like:true,
+          _count: {
+            select: {
+              like: true,
+              comment: true,
+            },
+          },
+          comment :{
+            select :{
+              text:true,
+              id: true,
+              user:{
+                select:{
+                  image:true,
+                  name:true,
+                }
+              }
             }
           },
           createdAt: true,
@@ -169,7 +182,6 @@ export const tweetRouter = router({
     .query(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { tweetId } = input;
-      
 
       const images = await prisma.images.findMany({
         where: {
@@ -192,7 +204,7 @@ export const tweetRouter = router({
     }),
   deleteImage: protectedProcedure
     .input(z.object({ tweetId: z.string() }))
-    .mutation(async ({ ctx,input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { tweetId } = input;
       if (!ctx.session) {
@@ -228,29 +240,29 @@ export const tweetRouter = router({
         }),
       ]);
     }),
-  like : protectedProcedure
-    .input(z.object({tweetId:z.string()}))
-    .mutation(async ({ctx, input}) => {
+  like: protectedProcedure
+    .input(z.object({ tweetId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      const {prisma} = ctx;
+      const { prisma } = ctx;
       return prisma.like.create({
-        data:{
-          tweet:{
-            connect:{
-              id:input.tweetId
-            }
+        data: {
+          tweet: {
+            connect: {
+              id: input.tweetId,
+            },
           },
-          user:{
-            connect:{
-              id:userId
-            }
-          }
-        }
-      })
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
     }),
   unlike: protectedProcedure
-    .input(z.object({tweetId:z.string()}))
-    .mutation(async ({ctx, input}) => {
+    .input(z.object({ tweetId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const { prisma } = ctx;
       return prisma.like.delete({
@@ -261,5 +273,71 @@ export const tweetRouter = router({
           },
         },
       });
-    })
+    }),
+  createComment: protectedProcedure
+    .input(
+      z.object({
+        tweetId: z.string(),
+        text: z.string().optional(),
+        // author: z.string().optional()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const { prisma } = ctx;
+      const { tweetId, text } = input;
+      // if (!text) return;
+      return await prisma.comment.create({
+        data: {
+          text,
+          tweet: {
+            connect: {
+              id: tweetId,
+            },
+          },
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+    }),
+  deleteComment: protectedProcedure
+    .input(
+      z.object({
+          commentId: z.string()
+        }
+      )
+    )
+    .mutation(async({ctx,input}) => {
+      if (!ctx.session) {
+        throw new Error("You must be logged in");
+      }
+      const { prisma } = ctx;
+      const {commentId} = input;
+
+      return await prisma.comment.delete({
+        where: {
+          id: commentId,
+        },
+      });
+    }),
+  deleteTweet: protectedProcedure
+    .input(z.object({
+      tweetId: z.string(),
+    }))
+    .mutation(async ({ctx,input}) => {
+      if (!ctx.session) {
+        throw new Error("You must be logged in");
+      }
+      const {prisma} = ctx;
+      const {tweetId} = input;
+      return  await prisma.tweet.delete({
+        where:{
+          id: tweetId,
+        }
+      })
+    }
+    )
 });

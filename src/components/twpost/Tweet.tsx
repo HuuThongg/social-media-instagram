@@ -37,7 +37,7 @@ function updateCache({
       },
     ],
     (oldData) => {
-      console.log(oldData);
+      console.log("oldData",oldData);
       const newData = oldData as InfiniteData<
         RouterOutputs["tweet"]["timeline"]
       >;
@@ -74,27 +74,48 @@ function updateCache({
 function Tweet({
   tweet,
   client,
-  input
+  input,
+  utils
 }:{tweet:RouterOutputs['tweet']['timeline']['tweets'][number];
 client: QueryClient;
     input: RouterInputs["tweet"]["timeline"];
+    utils: typeof trpc.useContext
 }){
+  // const utils = trpc.useContext();
 
   const tweetId : string = tweet.id;
   
-  const { data: images} = trpc.tweet.getImagesForUser.useQuery({ tweetId });
+  const { data: images ,refetch: refetchImages} = trpc.tweet.getImagesForUser.useQuery({ tweetId });
 
   const likeMutation = trpc.tweet.like.useMutation({
     onSuccess:(data, variables)=>{
       updateCache({ client, variables, data, action:"like",input});
     },
   }).mutateAsync;
+
   const unlikeMutation = trpc.tweet.unlike.useMutation({
     onSuccess: (data, variables) => {
       updateCache({ client, data, variables, action: "unlike",input });
     },
   }).mutateAsync;
+
+  const {mutateAsync : deleteTweet, } = trpc.tweet.deleteTweet.useMutation({
+    onSuccess: async () => {
+      utils.tweet.timeline.invalidate();
+    },
+  })
+  const {mutateAsync : deleteImage} = trpc.tweet.deleteImage.useMutation()
+  const handleDeleteTweet =async () =>{
+    await Promise.all([
+      deleteTweet({ tweetId }),
+      deleteImage({ tweetId })
+    ]);
+  }
+
   const hasLike = tweet.like.length > 0;
+
+  const hasComment = tweet.comment.length > 0;
+  
   return( 
     <div className='border-t border-bordercl pt-2'>
       <div className='flex flex-col'>
@@ -115,6 +136,8 @@ client: QueryClient;
 
           }
           </div>
+          {/* delete */}
+          <button onClick={handleDeleteTweet} className='ml-auto'> delete</button>
         </div>
         <div>
           {/* {imgUrlsObject[0]  &&
@@ -133,7 +156,7 @@ client: QueryClient;
         </div>
       </div>
       <div>
-        <Interaction likeFn ={likeMutation} unlikeFn ={unlikeMutation} tweetId ={tweetId} hasLike = {hasLike} twCreateAt={tweet.createdAt} likeCount ={tweet._count.like}/>
+        <Interaction likeFn={likeMutation} unlikeFn={unlikeMutation} tweetId={tweetId} hasLike={hasLike} twCreateAt={tweet.createdAt} likeCount={tweet._count.like} comments={tweet.comment} commentCount ={tweet._count.comment} hasComment={hasComment}  />
       </div>
     </div>
   )
