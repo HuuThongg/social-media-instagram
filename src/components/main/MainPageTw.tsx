@@ -129,7 +129,7 @@
 
 // export default MainPageTw
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import Image from 'next/image'
 // import ImagePicker from '../createPost/ImagePicker'
@@ -157,6 +157,7 @@ const MainPageTw = () => {
   const utils = trpc.useContext();
 
   const fileInput = useRef(null);
+  const controlHeight = useRef(null)
   const [text, setText] = useState("")
   const [error, setError] = useState(false);
   const [file, setFile] = useState<any>(null);
@@ -244,6 +245,14 @@ const MainPageTw = () => {
     e.preventDefault();
     // deleteAllImages({tweetId: twId});
   }
+  const checkHeight = () => {
+    if (controlHeight.current.offsetHeight > 780) {
+      controlHeight.current.style.overflowY = 'auto'
+    }
+  }
+  useEffect(() => {
+    checkHeight()
+  }, [])
   return (
     <main className='flex flex-col p-0 m-0 border-none grow items-start  shrink basis-auto  text-[15px] relative  bg-bgcl pointer-events-auto'>
       <div className='w-[990px] flex flex-col shrink grow  basis-auto m-0 p-0 min-h-0 min-w-0 relative z-0'>
@@ -259,13 +268,13 @@ const MainPageTw = () => {
           </div>
           {/* create tweet //  new tweet */}
           <div className='css-intial  pointer-events-auto  '>
-            <div className='pb-1'>
-              <div className='flex  py-1 w-full  relative  '>
+            <div className='pb-2 px-4'>
+              <div className=' relative flex py-1  '>
                 {/* avatar */}
-                <div className='flex flex-col  mt-1 mr-3  w-[48px] z-0 relative bg-transparent '>
-                  <div className='pb-[100%] pointer-events-auto block'>
+                <div className='flex flex-col  mt-1 mr-[13px]  w-[53px] z-0 relative bg-transparent grow-0 '>
+                  <div className='pb-[100%] pointer-events-auto block w-[53px]'>
                   </div>
-                  <div className='absolute top-0 left-0 w-[48px] h-[48px]'>
+                  <div className='absolute top-0 left-0 w-[53px] h-[53px]'>
                     <div className='w-full h-full'>
                       <Image className='rounded-full'
                         src="https://cdn.discordapp.com/icons/937768886412132392/6693a262a7711148211abae46fe393a4.webp?size=96" alt="Picture of the author"
@@ -277,16 +286,29 @@ const MainPageTw = () => {
                   </div>
                 </div>
                 {/* right side of create tweet */}
-                <div className='flex flex-col justify-center items-start box-border  mt-1 bg-red-400 w-full h-full px-1'>
+                <div className=' relative flex flex-col justify-center items-start box-border  pt-1  w-[calc(100%-53px-13px)] flex-1'>
                   {/* text */}
                   <div className=' w-full'>
-                    <div className=''>
-                      <form id="createPost" onSubmit={handleSubmit} className="flex w-full flex-col py-4 px-1 border-none rounded-md ">
+                    <div className='py-4 '>
+                      <div className='overflow-y-auto max-h-[768px] min-h-[26px] w-full' ref={controlHeight}>
+                        <div className='  h-full relative '>
+
+                          <form id="createPost" onSubmit={handleSubmit} className=" relative flex w-full flex-col  border-none rounded-md pointer-events-auto
+                          cursor-text text-left text-xl">
 
 
-                        <textarea onChange={(e) => setText(e.target.value)} className='border-none active:border-none' />
-                        
-                      </form>
+                            <input  type="text" onChange={(e) => setText(e.target.value)} 
+                              className='border-none active:border-none whitespace-pre-wrap break-words  pointer-events-auto w-full max-h-[768px] h-full ' 
+                              placeholder="what&apos;s happenings?"
+                            value={text} />
+                            <span className=' -mt-9 whitespace-pre-wrap break-words  h-full pointer-events-none text-teal-300 overflow-hidden text-ellipsis'>{text}
+                            </span>
+                            
+                          </form>
+                        </div>
+                      </div>
+
+                      
 
                       {error && JSON.stringify(error)}
 
@@ -327,7 +349,7 @@ const MainPageTw = () => {
             </div>
           </div>
           <section className='bg-white border-t border-bordercl '>
-            <TweetLine/>
+            <TweetLine where={{}}/>
           </section>
         </div>
         {/* search */}
@@ -336,4 +358,4 @@ const MainPageTw = () => {
   )
 }
 
-export default MainPageTw
+export default MainPageTw;

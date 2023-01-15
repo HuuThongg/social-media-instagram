@@ -1,10 +1,11 @@
-import { QueryClient , InfiniteData} from '@tanstack/react-query';
+import type { QueryClient , InfiniteData} from '@tanstack/react-query';
 import Link from 'next/link';
 
 import React from 'react'
-import { RouterOutputs, RouterInputs, trpc } from '../../utils/trpc'
+import type { RouterOutputs, RouterInputs } from '../../utils/trpc';
+import { trpc } from '../../utils/trpc';
 import Interaction from './Interaction';
-// import Image from 'next/image'
+import Image from 'next/image'
 
 function updateCache({
   client,
@@ -75,25 +76,25 @@ function Tweet({
   tweet,
   client,
   input,
-  utils
+  // utils
 }:{tweet:RouterOutputs['tweet']['timeline']['tweets'][number];
 client: QueryClient;
     input: RouterInputs["tweet"]["timeline"];
-    utils: typeof trpc.useContext
+    // utils: typeof trpc.useContext
 }){
-  // const utils = trpc.useContext();
+  const utilss = trpc.useContext();
 
   const tweetId : string = tweet.id;
-  
-  const { data: images ,refetch: refetchImages} = trpc.tweet.getImagesForUser.useQuery({ tweetId });
+  const { data: images } = trpc.tweet.getImagesForUser.useQuery({ tweetId });
+  // const { data: images ,refetch: refetchImages} = trpc.tweet.getImagesForUser.useQuery({ tweetId });
 
-  const likeMutation = trpc.tweet.like.useMutation({
+  const likeMutation :(variables: { tweetId: string }) => void = trpc.tweet.like.useMutation({
     onSuccess:(data, variables)=>{
       updateCache({ client, variables, data, action:"like",input});
     },
   }).mutateAsync;
 
-  const unlikeMutation = trpc.tweet.unlike.useMutation({
+  const unlikeMutation: (variables: { tweetId: string }) => void = trpc.tweet.unlike.useMutation({
     onSuccess: (data, variables) => {
       updateCache({ client, data, variables, action: "unlike",input });
     },
@@ -101,7 +102,7 @@ client: QueryClient;
 
   const {mutateAsync : deleteTweet, } = trpc.tweet.deleteTweet.useMutation({
     onSuccess: async () => {
-      utils.tweet.timeline.invalidate();
+      utilss.tweet.timeline.invalidate();
     },
   })
   const {mutateAsync : deleteImage} = trpc.tweet.deleteImage.useMutation()
@@ -112,17 +113,18 @@ client: QueryClient;
     ]);
   }
 
-  const hasLike = tweet.like.length > 0;
+  const hasLike :boolean = tweet.like.length > 0;
 
-  const hasComment = tweet.comment.length > 0;
-  
+
   return( 
     <div className='border-t border-bordercl pt-2'>
       <div className='flex flex-col'>
         <div className='flex '>
           <Link href={`/${tweet.author.name}`}>
           {tweet.author.image &&
-            <img src={tweet.author.image} alt={`${tweet.author.name} profile picture`}  className='rounded-full w-[40px] h-[40px]' />
+            <Image src={tweet.author.image} alt={`${tweet.author.name} profile picture`}  className='rounded-full'
+            width={40}
+            height={40} />
           }
           </Link>
 
@@ -156,7 +158,7 @@ client: QueryClient;
         </div>
       </div>
       <div>
-        <Interaction likeFn={likeMutation} unlikeFn={unlikeMutation} tweetId={tweetId} hasLike={hasLike} twCreateAt={tweet.createdAt} likeCount={tweet._count.like} comments={tweet.comment} commentCount ={tweet._count.comment} hasComment={hasComment}  />
+        <Interaction likeFn={likeMutation} unlikeFn={unlikeMutation} tweetId={tweetId} hasLike={hasLike} twCreateAt={tweet.createdAt} likeCount={tweet._count.like} commentCount ={tweet._count.comment}  commentData={tweet.comment}   />
       </div>
     </div>
   )

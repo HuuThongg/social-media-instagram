@@ -10,7 +10,7 @@ module.exports = {
         elevated_border: "rgb(219,219,219)",
         secondary_text: "rgb(142, 142, 142)",
         bordercl: "rgb(47,51,54)",
-        homeCl: "rgba(225,225,225,0.85)",
+        homeCl: "rgba(255,255,255,0.85)",
       },
     },
     screens: {

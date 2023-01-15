@@ -1,6 +1,7 @@
 import React,{useEffect, useState} from 'react'
 import Tweet from './Tweet'
-import { RouterInputs, trpc } from '../../utils/trpc'
+import type { RouterInputs} from '../../utils/trpc';
+import { trpc } from '../../utils/trpc'
 import {
   useQueryClient,
 } from "@tanstack/react-query";
@@ -66,7 +67,8 @@ const TweetLine = ({where = {}}:{where: RouterInputs['tweet']['timeline']['where
               </div>
               {/* tweet */}
               {tweetData?.map((tweet) => {
-                return <Tweet key={tweet.id} tweet={tweet} input={{ where, limit:LIMITTWEETS }}  client={client} utils={utils}></Tweet>
+                return <Tweet key={tweet.id} tweet={tweet} input={{ where, limit:LIMITTWEETS }}  client={client} utils={utils}
+                ></Tweet>
               })}
             </div>
           </article>

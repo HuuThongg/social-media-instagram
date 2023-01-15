@@ -89,7 +89,9 @@ export const tweetRouter = router({
                   image:true,
                   name:true,
                 }
-              }
+              },
+              createdAt:true,
+              updatedAt:true,
             }
           },
           createdAt: true,

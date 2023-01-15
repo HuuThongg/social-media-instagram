@@ -6,10 +6,12 @@ import { MdOutlineExplore } from 'react-icons/md'
 import { FiMessageSquare } from 'react-icons/fi'
 import { GrNotification } from 'react-icons/gr'
 import { HiOutlineDotsCircleHorizontal, HiOutlineDotsHorizontal } from 'react-icons/hi'
-
+import { HiOutlineUser } from 'react-icons/hi2'
+import { useSession } from "next-auth/react"
 
 const SideBar = () => {
-
+  const {data} = useSession();
+  const profileSrc=data?.user?.image
   const [isHover, setIsHover] = useState(false)
 
   return (
@@ -116,7 +118,7 @@ const SideBar = () => {
                       <div className='inline-flex w-full px-3 items-center  rounded-3xl cursor-pointer my-2 h-[48px] hover:bg-slate-50 ' >
                         {/* logo */}
                         <div className='text-[24px] w-6 h-6 rounded-full'>
-                          <img className=' rounded-full' src="https://scontent-sjc3-1.xx.fbcdn.net/v/t39.30808-1/251352403_402844261390650_7825433243757687395_n.jpg?stp=dst-jpg_p100x100&_nc_cat=103&ccb=1-7&_nc_sid=7206a8&_nc_ohc=ywr-N_a9qZQAX8vysDh&_nc_ht=scontent-sjc3-1.xx&oh=00_AfDwiamJRlhwXbrhRkeoFayKdOAHYI4TL9xy9fe8cCKByw&oe=63B0594A" alt="" />
+                          <HiOutlineUser/>
                         </div>
                         {/* feild */}
                         <div className='flex px-4 items-center w-fit  h-6'>
@@ -157,7 +159,7 @@ const SideBar = () => {
                   <div className=''>
                     <img 
                     className=' h-[40px] w-[40px] rounded-full object-cover'
-                    src="https://scontent-sjc3-1.xx.fbcdn.net/v/t39.30808-1/251352403_402844261390650_7825433243757687395_n.jpg?stp=dst-jpg_p100x100&_nc_cat=103&ccb=1-7&_nc_sid=7206a8&_nc_ohc=ywr-N_a9qZQAX8vysDh&_nc_ht=scontent-sjc3-1.xx&oh=00_AfDwiamJRlhwXbrhRkeoFayKdOAHYI4TL9xy9fe8cCKByw&oe=63B0594A" alt="" />
+                      src={profileSrc} alt="avatar" />
                   </div>
                   {/* handle */}
                   <div className='outline-none grow  shrink text-[15px] cursor-pointer  flex flex-col basis-auto'>

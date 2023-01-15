@@ -2,7 +2,7 @@ import Link from 'next/link'
 import React,{useState} from 'react'
 import { FiHeart, FiMessageSquare, FiSend, FiBookmark } from 'react-icons/fi'
 import { trpc } from '../../utils/trpc'
-
+import Image from 'next/image'
 import dayjs from 'dayjs'
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
@@ -28,8 +28,27 @@ dayjs.updateLocale("en", {
   },
 });
 
-const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount ,comments , hasComment, commentCount}) => {
+const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount  , commentCount ,commentData}:{
+  tweetId: string;
+  likeCount: number;
+  commentCount : number;
+  hasLike : boolean;
+  unlikeFn: (variables: { tweetId: string }) => void;
+  likeFn : (variables: { tweetId: string }) => void;
+  twCreateAt : Date;
+  commentData: {
+    text: string | null;
+    user: {
+      name: string | null;
+      image: string | null;
+    };
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }[]
+}) => {
   const [ text,setText]= useState("")
+
 
   const utils = trpc.useContext()
 
@@ -46,10 +65,14 @@ const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount
     }
   })
 
-
-  const handleSubmit= (e:React.FormEvent<HTMLFormElement>)=>{
-    e.preventDefault();
-    createCommentFn({text,tweetId})
+  const hasComment : boolean = commentData.length > 0;
+  
+  
+  const handleSubmitComment = (e:React.FormEvent<HTMLTextAreaElement>)=>{
+    if (e.key === "Enter") {
+      e.preventDefault();
+      createCommentFn({text,tweetId})
+    }
   }
   return (
     <div className='shrink-0 grow-0 basis-auto  flex flex-col justify-start '>
@@ -127,21 +150,27 @@ const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount
               </div>
             }
             {/* create comments */}
-            <form id="createComment" onSubmit={handleSubmit} className="flex w-full  py-4 px-1 border rounded-md justify-between" >
-              <textarea className='bg-white w-full' placeholder='Tweet your reply' onChange={(e) =>setText(e.target.value)} value={text}></textarea>
-              <button type="submit">comment</button>
-            </form>
+            {/* <form id="createComment" onSubmit={handleSubmitComment} className="flex w-full  py-4 px-1 border rounded-md justify-between" >
+              <textarea className='bg-white w-full' placeholder='Tweet your reply' onChange={(e) => setText(e.target.value)} value={text} onKeyPress={handleSubmitComment}></textarea>
+            </form> */}
 
             {/* show comments */}
             <div className='shrink-0 grow-0 flex flex-col mb-1'>
               {/* render comments from database */}
-              {comments.map((comment) =>(
+              {commentData.map((comment) =>(
                 <div key={comment.id} className="flex py-1">
-                  <img src={comment.user.image} alt="user profile" 
+                  <Image 
+                    src={ comment.user.image || '/../../images/manAvatarDefault.jpg'} 
+                  alt="user profile" 
                   className='w-[24px] h-[24px] rounded-full'
+                  width={24}
+                  height={24}
                   />
                   <div>{comment.user.name}</div>
-                  <p className='ml-2' > {comment.text}</p>
+                  <p className='mx-2' > {comment.text}</p>
+                  
+                  <div>{dayjs(comment.createdAt).format('ddd h:mm:ss A MMM DD YYYY')}</div>
+
                   <button onClick={()=>{deleteCommentFn({commentId: comment.id})}} className='ml-auto'> delete</button>
                 </div>
               ))}
@@ -183,8 +212,8 @@ const Interaction = ({ tweetId, likeFn, unlikeFn, hasLike, twCreateAt, likeCount
           {/* add comments */}
           <section className='px-3 py-1 border-t border-solid border-separate border-neutral-300 text-[14px] shrink-0 text-secondary_text relative'>
             <div>
-              <form action="" className=' flex boder-0 border-none m-0 p-0 relative align-baseline'>
-                <textarea className=' h-[18px] b grow-border-none outline-none resize-none active:border-none active:outline-none text-start whitespace-pre-wrap w-full rounded-none text-slate-700 appearance-none' placeholder='Add a comment...' >
+              <form action="" className=' flex boder-0 border-none m-0 p-0 relative align-baseline' >
+                <textarea className=' h-[18px] b grow-border-none outline-none resize-none active:border-none active:outline-none text-start whitespace-pre-wrap w-full rounded-none text-slate-700 appearance-none' placeholder='Add a comment...' onChange={(e) => setText(e.target.value)} value={text} onKeyUp={handleSubmitComment}>
 
                 </textarea>
 
