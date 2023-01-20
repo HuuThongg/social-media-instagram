@@ -22,7 +22,11 @@ export const serverSchema = z.object({
   DISCORD_CLIENT_ID: z.string(),
   DISCORD_CLIENT_SECRET: z.string(),
   GOOGLE_ID: z.string(),
-  GOOGLE_SECRET : z.string(),
+  GOOGLE_SECRET: z.string(),
+  BUCKET_NAME: z.string(),
+  SECRET_KEY: z.string(),
+  ACCESS_KEY:z.string(),
+
   // NEXT_PUBLIC_WS_URL :z.string(),
 });
 
@@ -38,8 +42,11 @@ export const serverEnv = {
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
-  GOOGLE_ID : process.env.GOOGLE_ID,
-  GOOGLE_SECRET : process.env.GOOGLE_SECRET,
+  GOOGLE_ID: process.env.GOOGLE_ID,
+  GOOGLE_SECRET: process.env.GOOGLE_SECRET,
+  BUCKET_NAME: process.env.BUCKET_NAME,
+  SECRET_KEY: process.env.SECRET_KEY,
+  ACCESS_KEY : process.env.ACCESS_KEY,
   // NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
 };
 

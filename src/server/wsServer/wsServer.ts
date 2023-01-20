@@ -1,6 +1,7 @@
 import { createTRPCContext } from "../api/trpc";
 import { appRouter } from "../api/root";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+
 import fetch from "node-fetch";
 import ws from "ws";
 if (!global.fetch) {
@@ -10,6 +11,7 @@ if (!global.fetch) {
 const wss = new ws.Server({
   port: 3001,
 });
+
 const handler = applyWSSHandler({ wss, router: appRouter,createContext: createTRPCContext });
 
 wss.on("connection", (ws) => {
